@@ -16,6 +16,18 @@ public class PlayerJump : MonoBehaviour
     [Tooltip("Factor para recortar el salto al soltar el botón (0-1). 0.5 = corta a la mitad la velocidad vertical ascendente")]
     [Range(0.1f, 1f)] public float jumpCutMultiplier = 0.5f;
 
+    // Coyote time & jump buffer (para input más permisivo)
+    [Header("Timing Aids")]
+    [SerializeField] private float coyoteTime = 0.15f;
+    [SerializeField] private float jumpBufferTime = 0.15f;
+    private float coyoteTimeCounter;
+    private float jumpBufferCounter;
+
+    // Double jump
+    [Header("Double Jump")]
+    public int extraJumps = 1;
+    private int extraJumpsLeft;
+
     // Ground check
     [Header("Ground Check")] 
     public Transform groundCheck;           // Assign the GroundCheck child here
@@ -26,6 +38,7 @@ public class PlayerJump : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        extraJumpsLeft = extraJumps;
     }
 
     void Update()
@@ -36,15 +49,48 @@ public class PlayerJump : MonoBehaviour
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         }
 
-        // Basic jump (parametrized by height): only when grounded
-        if (JumpPressedThisFrame() && isGrounded)
+        // Coyote time + reset de doble salto al pisar suelo
+        if (isGrounded)
+        {
+            coyoteTimeCounter = coyoteTime;
+            extraJumpsLeft = extraJumps;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
+
+        // Jump buffer: guarda el input de salto por un breve tiempo
+        if (JumpPressedThisFrame())
+        {
+            jumpBufferCounter = jumpBufferTime;
+        }
+        else
+        {
+            jumpBufferCounter -= Time.deltaTime;
+        }
+
+        // Lógica de salto combinada (prioriza salto en suelo/coyote; si no, usa doble salto)
+        if (jumpBufferCounter > 0f)
         {
             float g = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
             float initialVelY = Mathf.Sqrt(2f * g * Mathf.Max(0f, jumpHeight));
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, initialVelY);
+
+            if (coyoteTimeCounter > 0f)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, initialVelY);
+                coyoteTimeCounter = 0f;   // consume coyote
+                jumpBufferCounter = 0f;   // consume buffer
+            }
+            else if (extraJumpsLeft > 0)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, initialVelY);
+                extraJumpsLeft--;         // consume un salto aéreo
+                jumpBufferCounter = 0f;   // consume buffer
+            }
         }
 
-        // Variable jump height: if button released while moving up, cut upward velocity
+        // Variable jump height: si suelta en ascenso, recorta altura
         if (JumpReleasedThisFrame() && rb.linearVelocity.y > 0f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
