@@ -1,43 +1,42 @@
 using UnityEngine;
-using System;
-using UnityEngine.InputSystem; 
+using UnityEngine.InputSystem;
 
 public class PlayerJump : MonoBehaviour
 {
-    // Rigidbody 2D
+    // Jump & Physics
     private Rigidbody2D rb;
+    public float jumpForce = 10f;
+    public float fallMultiplier = 2.5f;
+    public float lowJumpMultiplier = 2f;
 
-    // Input System
-    [Header("Input")]
-    [SerializeField] 
-    private PlayerInput playerInput; // Assign in Inspector or auto-get
-    private InputAction jumpAction;                   // Must exist as "Jump" in your Actions
+    // Ground Check
+    public Transform groundCheck;
+    public LayerMask groundLayer;
+    public float groundCheckRadius = 0.2f;
+    private bool isGrounded;
 
-    // Jump parameters (parametrized by height)
-    [Header("Jump")]
-    [Tooltip("Altura máxima deseada del salto (en unidades de mundo)")]
-    public float jumpHeight = 3f;
-    [Tooltip("Factor para recortar el salto al soltar el botón (0-1). 0.5 = corta a la mitad la velocidad vertical ascendente")]
-    [Range(0.1f, 1f)] public float jumpCutMultiplier = 0.5f;
-
-    // Coyote time & jump buffer (para input más permisivo)
-    [Header("Timing Aids")]
-    [SerializeField] private float coyoteTime = 0.15f;
-    [SerializeField] private float jumpBufferTime = 0.15f;
+    // Coyote Time
+    private float coyoteTime = 0.15f;
     private float coyoteTimeCounter;
+
+    // Jump Buffering
+    private float jumpBufferTime = 0.15f;
     private float jumpBufferCounter;
 
-    // Double jump
-    [Header("Double Jump")]
+    // Double Jump
     public int extraJumps = 1;
-    private int extraJumpsLeft;
+    private int extraJumpsValue;
 
-    // Ground check
-    [Header("Ground Check")] 
-    public Transform groundCheck;           // Assign the GroundCheck child here
-    public LayerMask groundLayer;           // Assign the Ground layer here
-    public float groundCheckRadius = 0.2f;  // Tweak to fit your collider
-    private bool isGrounded;
+    // New Input System
+    [Header("Input")]
+    [SerializeField] private PlayerInput playerInput; // Assign asset with a "Player" map containing actions
+    private InputAction jumpAction;                   // Button
+    private InputAction moveAction;                   // Vector2 or 1D Axis
+
+    // Horizontal Move
+    [Header("Move")]
+    [SerializeField] private float moveSpeed = 6f;    // Units per second
+    private float moveInputX = 0f;
 
     void Awake()
     {
@@ -50,36 +49,50 @@ public class PlayerJump : MonoBehaviour
     {
         if (playerInput != null && playerInput.actions != null)
         {
-            jumpAction = playerInput.actions["Jump"]; // Reads the "Jump" action
+            jumpAction = playerInput.actions.FindAction("Jump", throwIfNotFound: false);
+            moveAction  = playerInput.actions.FindAction("Move", throwIfNotFound: false);
         }
-        extraJumpsLeft = extraJumps;
+        extraJumpsValue = extraJumps; // Set initial jumps
     }
 
     void OnDisable()
     {
         jumpAction = null;
+        moveAction = null;
     }
 
     void Update()
     {
-        // Ground detection using an overlap circle at the feet
-        if (groundCheck != null)
+        // --- Read horizontal input (supports Vector2 or 1D Axis) ---
+        if (moveAction != null)
         {
-            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+            var ect = moveAction.expectedControlType;
+            if (!string.IsNullOrEmpty(ect) && ect.ToLowerInvariant() == "axis")
+            {
+                moveInputX = moveAction.ReadValue<float>();
+            }
+            else
+            {
+                Vector2 mv = moveAction.ReadValue<Vector2>();
+                moveInputX = mv.x;
+            }
         }
 
-        // Coyote time + reset de doble salto al pisar suelo
+        // --- Ground Check ---
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+
+        // --- Coyote Time & Double Jump Reset ---
         if (isGrounded)
         {
             coyoteTimeCounter = coyoteTime;
-            extraJumpsLeft = extraJumps;
+            extraJumpsValue = extraJumps; // Reset double jumps
         }
         else
         {
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        // Jump buffer: guarda el input de salto por un breve tiempo
+        // --- Jump Buffering ---
         if (JumpPressedThisFrame())
         {
             jumpBufferCounter = jumpBufferTime;
@@ -89,34 +102,43 @@ public class PlayerJump : MonoBehaviour
             jumpBufferCounter -= Time.deltaTime;
         }
 
-        // Lógica de salto combinada (prioriza salto en suelo/coyote; si no, usa doble salto)
+        // --- COMBINED Jump Input Check ---
         if (jumpBufferCounter > 0f)
         {
-            float g = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
-            float initialVelY = Mathf.Sqrt(2f * g * Mathf.Max(0f, jumpHeight));
-
-            if (coyoteTimeCounter > 0f)
+            if (coyoteTimeCounter > 0f) // Priority 1: Ground Jump (uses coyote time)
             {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, initialVelY);
-                coyoteTimeCounter = 0f;   // consume coyote
-                jumpBufferCounter = 0f;   // consume buffer
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+                coyoteTimeCounter = 0f; // Consume coyote time
+                jumpBufferCounter = 0f; // Consume buffer
             }
-            else if (extraJumpsLeft > 0)
+            else if (extraJumpsValue > 0) // Priority 2: Air Jump
             {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, initialVelY);
-                extraJumpsLeft--;         // consume un salto aéreo
-                jumpBufferCounter = 0f;   // consume buffer
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce); // You could use a different jumpForce here
+                extraJumpsValue--; // Consume an air jump
+                jumpBufferCounter = 0f; // Consume buffer
             }
-        }
-
-        // Variable jump height: si suelta en ascenso, recorta altura
-        if (JumpReleasedThisFrame() && rb.linearVelocity.y > 0f)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
         }
     }
- 
-    // Gizmo to help tune the ground check in the Scene view
+
+    void FixedUpdate()
+    {
+        // --- Apply horizontal velocity ---
+        rb.linearVelocity = new Vector2(moveInputX * moveSpeed, rb.linearVelocity.y);
+
+        // --- Better Falling Logic ---
+        if (rb.linearVelocity.y < 0)
+        {
+            // We are falling - apply the fallMultiplier
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }
+        else if (rb.linearVelocity.y > 0 && !JumpHeld())
+        {
+            // We are rising, but not holding Jump - apply the lowJumpMultiplier
+            rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
+        }
+    }
+
+    // Helper function to visualize the ground check radius in the Scene view
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null) return;
@@ -124,14 +146,14 @@ public class PlayerJump : MonoBehaviour
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 
-    // Input helpers using the new Input System exclusively
+    // --- Input helpers (New Input System) ---
     private bool JumpPressedThisFrame()
     {
         return jumpAction != null && jumpAction.WasPressedThisFrame();
     }
 
-    private bool JumpReleasedThisFrame()
+    private bool JumpHeld()
     {
-        return jumpAction != null && jumpAction.WasReleasedThisFrame();
+        return jumpAction != null && jumpAction.IsPressed();
     }
 }
