@@ -286,6 +286,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 20409854}
+    - targetCorrespondingSourceObject: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 20409855}
   m_SourcePrefab: {fileID: 100100000, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
 --- !u!1 &20409847 stripped
 GameObject:
@@ -401,6 +404,47 @@ MonoBehaviour:
   restartDelay: 0.3
   deathSfx: {fileID: 0}
   deathVfx: {fileID: 0}
+--- !u!114 &20409855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 20409847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ae9ce56fede77e439d7ed148ea6eb4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderers: []
+  effectProperty: _Effect
+  duration: 5
+  envelope:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  addOverlayIfMissing: 1
+  overlayShaderPath: Custom/RainbowAddOverlayURP
 --- !u!4 &26600438 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3916774128121119477, guid: e9dbc134127911f4bb6c1eb5c0c46f49, type: 3}
@@ -1719,7 +1763,7 @@ MonoBehaviour:
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 1, y: 1, z: 1}
+  Damping: {x: 0.6, y: 0.6, z: 1}
   Lookahead:
     Enabled: 0
     Time: 0
@@ -1952,7 +1996,19 @@ MonoBehaviour:
   destroyDelay: 0
   onCollected:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 20409855}
+        m_TargetAssemblyTypeName: PlayerRainbowEffect, Assembly-CSharp
+        m_MethodName: TriggerCoin
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!58 &2103423674
 CircleCollider2D:
   m_ObjectHideFlags: 0
