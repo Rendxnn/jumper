@@ -1,13 +1,17 @@
 using UnityEngine;
 using System;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem; // New Input System
-#endif
+using UnityEngine.InputSystem; 
 
 public class PlayerJump : MonoBehaviour
 {
     // Rigidbody 2D
     private Rigidbody2D rb;
+
+    // Input System
+    [Header("Input")]
+    [SerializeField] 
+    private PlayerInput playerInput; // Assign in Inspector or auto-get
+    private InputAction jumpAction;                   // Must exist as "Jump" in your Actions
 
     // Jump parameters (parametrized by height)
     [Header("Jump")]
@@ -35,10 +39,25 @@ public class PlayerJump : MonoBehaviour
     public float groundCheckRadius = 0.2f;  // Tweak to fit your collider
     private bool isGrounded;
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        if (playerInput == null)
+            playerInput = GetComponent<PlayerInput>();
+    }
+
+    void OnEnable()
+    {
+        if (playerInput != null && playerInput.actions != null)
+        {
+            jumpAction = playerInput.actions["Jump"]; // Reads the "Jump" action
+        }
         extraJumpsLeft = extraJumps;
+    }
+
+    void OnDisable()
+    {
+        jumpAction = null;
     }
 
     void Update()
@@ -105,26 +124,14 @@ public class PlayerJump : MonoBehaviour
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 
-    // Input helpers compatible with the new Input System
+    // Input helpers using the new Input System exclusively
     private bool JumpPressedThisFrame()
     {
-#if ENABLE_INPUT_SYSTEM
-        bool keyboard = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
-        bool gamepad = Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame; // A/Cross
-        return keyboard || gamepad;
-#else
-        return Input.GetButtonDown("Jump");
-#endif
+        return jumpAction != null && jumpAction.WasPressedThisFrame();
     }
 
     private bool JumpReleasedThisFrame()
     {
-#if ENABLE_INPUT_SYSTEM
-        bool keyboard = Keyboard.current != null && Keyboard.current.spaceKey.wasReleasedThisFrame;
-        bool gamepad = Gamepad.current != null && Gamepad.current.buttonSouth.wasReleasedThisFrame;
-        return keyboard || gamepad;
-#else
-        return Input.GetButtonUp("Jump");
-#endif
+        return jumpAction != null && jumpAction.WasReleasedThisFrame();
     }
 }
