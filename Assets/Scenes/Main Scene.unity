@@ -310,11 +310,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44f077a20a1a99946a0861254e344b5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpForce: 12
+  jumpHeight: 3
+  jumpCutMultiplier: 0.5
   groundCheck: {fileID: 44193685}
   groundLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   groundCheckRadius: 0.2
 --- !u!1 &44193684
 GameObject:
@@ -395,9 +396,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -6862549041861475318, guid: 5cc7c138e54af4462bce5f6baf983f7b, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -6862549041861475318, guid: 5cc7c138e54af4462bce5f6baf983f7b, type: 3}
+      propertyPath: m_TagString
+      value: Ground
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5cc7c138e54af4462bce5f6baf983f7b, type: 3}
       propertyPath: m_Name
       value: Ground
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5cc7c138e54af4462bce5f6baf983f7b, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5cc7c138e54af4462bce5f6baf983f7b, type: 3}
       propertyPath: m_TagString
