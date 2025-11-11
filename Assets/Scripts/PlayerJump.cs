@@ -50,7 +50,7 @@ public class PlayerJump : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * jumpCutMultiplier);
         }
     }
-
+ 
     // Gizmo to help tune the ground check in the Scene view
     private void OnDrawGizmosSelected()
     {
