@@ -266,8 +266,6 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 5086242376466292938, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
     - {fileID: 4990764682642888921, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
-    - {fileID: 657185006897926158, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
-    - {fileID: 4738558639147882546, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1114260476483171701, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
@@ -289,6 +287,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 20409855}
+    - targetCorrespondingSourceObject: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 20409856}
   m_SourcePrefab: {fileID: 100100000, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
 --- !u!1 &20409847 stripped
 GameObject:
@@ -445,6 +446,23 @@ MonoBehaviour:
     m_RotationOrder: 4
   addOverlayIfMissing: 1
   overlayShaderPath: Custom/RainbowAddOverlayURP
+--- !u!114 &20409856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 20409847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ffd3566492b13b4aa0a87c86305c492, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 1382091804}
+  player: {fileID: 20409853}
+  speedSmoothing: 12
+  speedMultiplier: 1
+  jumpBoolHold: 0.1
 --- !u!4 &26600438 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3916774128121119477, guid: e9dbc134127911f4bb6c1eb5c0c46f49, type: 3}
@@ -1710,6 +1728,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 146c8cf8d3d2d4c14b4d20b601876128, type: 3}
+--- !u!95 &1382091804 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8656285644037328784, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
+  m_PrefabInstance: {fileID: 20409846}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1463163640 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a9378c3ca90974be1aa200abe39a20dc, type: 3}

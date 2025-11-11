@@ -27,6 +27,9 @@ public class PlayerJump : MonoBehaviour
     public int extraJumps = 1;
     private int extraJumpsValue;
 
+    // Flag to notify animation of a jump event this frame
+    private bool _jumpStartedThisFrame;
+
     // New Input System
     [Header("Input")]
     [SerializeField] private PlayerInput playerInput; // Assign asset with a "Player" map containing actions
@@ -110,12 +113,14 @@ public class PlayerJump : MonoBehaviour
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
                 coyoteTimeCounter = 0f; // Consume coyote time
                 jumpBufferCounter = 0f; // Consume buffer
+                _jumpStartedThisFrame = true;
             }
             else if (extraJumpsValue > 0) // Priority 2: Air Jump
             {
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce); // You could use a different jumpForce here
                 extraJumpsValue--; // Consume an air jump
                 jumpBufferCounter = 0f; // Consume buffer
+                _jumpStartedThisFrame = true;
             }
         }
     }
@@ -155,5 +160,21 @@ public class PlayerJump : MonoBehaviour
     private bool JumpHeld()
     {
         return jumpAction != null && jumpAction.IsPressed();
+    }
+
+    // --- Read-only accessors for Animator bridge ---
+    public bool IsGrounded => isGrounded;
+    public float YVelocity => rb != null ? rb.linearVelocity.y : 0f;
+    public float SpeedX => rb != null ? Mathf.Abs(rb.linearVelocity.x) : 0f;
+
+    // Returns true once when a jump was applied, then resets the flag
+    public bool ConsumeJumpStartedFlag()
+    {
+        if (_jumpStartedThisFrame)
+        {
+            _jumpStartedThisFrame = false;
+            return true;
+        }
+        return false;
     }
 }
